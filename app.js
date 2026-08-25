@@ -8,6 +8,7 @@ const userRoutes = require("./src/routes/userRoutes");
 const cartRoutes = require("./src/routes/cartRoutes");
 const orderRoutes = require("./src/routes/orderRoutes");
 const app = express();
+app.set("trust proxy", 1);
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,

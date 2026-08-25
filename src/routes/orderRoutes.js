@@ -18,12 +18,36 @@ router.post("/checkout", authMiddleware, async (req, res) => {
       });
     }
 
-    const orderItems = cart.items.map((item) => ({
-      product: item.product._id,
-      name: item.product.name,
-      price: item.product.price,
-      quantity: item.quantity,
-    }));
+   // Remove cart items whose products no longer exist
+const validItems = cart.items.filter((item) => item.product);
+
+if (validItems.length === 0) {
+  cart.items = [];
+  await cart.save();
+
+  return res.status(400).json({
+    message: "Cart contains no valid products",
+  });
+}
+
+// Remove invalid/deleted products from the cart
+if (validItems.length !== cart.items.length) {
+  cart.items = validItems.map((item) => ({
+    product: item.product._id,
+    quantity: item.quantity,
+  }));
+
+  await cart.save();
+}
+
+const orderItems = validItems.map((item) => ({
+  product: item.product._id,
+  name: item.product.name,
+  price: item.product.price,
+  quantity: item.quantity,
+}));
+
+
 
     const totalAmount = orderItems.reduce(
       (total, item) => total + item.price * item.quantity,
